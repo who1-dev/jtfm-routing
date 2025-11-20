@@ -19,3 +19,47 @@ variable "remote_data_sources" {
   default = {
   }
 }
+
+
+variable "exclude_public_subnet" {
+  type        = list(string)
+  description = "List of Public Subnet to be excluded in route table association"
+  default     = []
+}
+
+variable "exclude_private_subnet" {
+  type        = list(string)
+  description = "List of Private Subnet to be excluded in route table association"
+  default     = []
+}
+
+variable "exclude_database_subnet" {
+  type        = list(string)
+  description = "List of Database Subnet to be excluded in route table association"
+  default     = []
+}
+
+
+variable "enable_nat_access_to_all_private_subnets" {
+  type        = bool
+  description = "This flag will create routes for Private Subnets NAT Access"
+  default     = false
+}
+
+variable "enable_nat_access_to_all_database_subnets" {
+  type        = bool
+  description = "This flag will create routes for Database Subnets NAT Access"
+  default     = false
+}
+
+variable "set_private_subnet_nat_az_connection" {
+  type        = list(string)
+  description = "A list of Availability Zones to connect Private Subnets to NAT Gateways. Must be a subset of var.azs."
+  default     = []
+}
+
+variable "set_database_subnet_nat_az_connection" {
+  type        = list(string)
+  description = "A list of Availability Zones to connect Database Subnets to NAT Gateways. Must be a subset of var.azs."
+  default     = []
+}

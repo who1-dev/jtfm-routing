@@ -30,7 +30,7 @@ resource "aws_route_table" "database" {
 
 # Associate Public Subnets with Public Route Table
 resource "aws_route_table_association" "public" {
-  for_each       = local.network.public_subnets
+  for_each       = local.list_public_subnet
   subnet_id      = each.value.id
   route_table_id = aws_route_table.public.id
 
@@ -39,7 +39,7 @@ resource "aws_route_table_association" "public" {
 
 # Associate Private Subnets with Private Route Table
 resource "aws_route_table_association" "private" {
-  for_each = local.network.private_subnets
+  for_each = local.list_private_subnet
 
   subnet_id      = each.value.id
   route_table_id = aws_route_table.private[each.value.short_az].id
@@ -49,10 +49,12 @@ resource "aws_route_table_association" "private" {
 
 # Associate Database Subnets with Private Route Table
 resource "aws_route_table_association" "database" {
-  for_each = local.network.database_subnets
+  for_each = local.list_database_subnet
 
   subnet_id      = each.value.id
   route_table_id = aws_route_table.database[each.value.short_az].id
 
   depends_on = [aws_route_table.database]
 }
+
+
