@@ -10,16 +10,29 @@ variable "namespace" {
 }
 
 
-variable "remote_data_sources" {
-  type = map(object({
-    bucket = string
-    key    = string
-    region = string
-  }))
-  default = {
-  }
+variable "region" {
+  type    = string
+  default = "us-east-1"
 }
 
+
+variable "network_remote_state_config_bucket" {
+  type        = string
+  description = "S3 Bucket name where the remote network state is stored"
+  default     = ""
+}
+
+variable "network_remote_state_config_key" {
+  type        = string
+  description = "S3 Key name where the remote network state is stored"
+  default     = ""
+}
+
+variable "local_network_source_path" {
+  type        = string
+  description = "Local path to the network terraform state file"
+  default     = ""
+}
 
 variable "exclude_public_subnet" {
   type        = list(string)

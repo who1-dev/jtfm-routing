@@ -1,7 +1,9 @@
 locals {
 
   namespace = upper(format("%s-%s", var.namespace, var.env))
-  network   = data.terraform_remote_state.network_resources.outputs
+
+  # Load network state from either local or remote based on provided variables
+  network   = data.terraform_remote_state.remote == null ? data.terraform_remote_state.local[0].outputs : data.terraform_remote_state.remote[0].outputs
 
 
   list_nat_gateway_keys = [for key, details in local.network.nat_gateways : key]
