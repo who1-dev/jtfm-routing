@@ -16,6 +16,7 @@ variable "region" {
 }
 
 
+# START: Terraform state location ─────────────────────────────
 variable "network_remote_state_config_bucket" {
   type        = string
   description = "S3 Bucket name where the remote network state is stored"
@@ -34,6 +35,7 @@ variable "local_network_source_path" {
   default     = ""
 }
 
+# START: Subnet Isolation ─────────────────────────────
 variable "exclude_public_subnet" {
   type        = list(string)
   description = "List of Public Subnet to be excluded in route table association"
@@ -52,7 +54,7 @@ variable "exclude_database_subnet" {
   default     = []
 }
 
-
+# START: Routes: NAT Access ─────────────────────────────
 variable "enable_nat_access_to_all_private_subnets" {
   type        = bool
   description = "This flag will create routes for Private Subnets NAT Access"

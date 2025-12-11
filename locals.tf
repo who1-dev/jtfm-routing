@@ -3,6 +3,7 @@ locals {
   namespace = upper(format("%s-%s", var.namespace, var.env))
 
   # Load network state from either local or remote based on provided variables
+  # S3 Bucket and Key takes precedence over local path
   network   = data.terraform_remote_state.remote == null ? data.terraform_remote_state.local[0].outputs : data.terraform_remote_state.remote[0].outputs
 
 
