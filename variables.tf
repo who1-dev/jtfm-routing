@@ -78,3 +78,15 @@ variable "set_database_subnet_nat_az_connection" {
   description = "A list of Availability Zones to connect Database Subnets to NAT Gateways. Must be a subset of var.azs."
   default     = []
 }
+
+variable "isolate_subnets" {
+  description = "A map defining which subnets/tiers to isolate. Keys are tier names (e.g., public, private) and values are lists of AZs or CIDRs."
+  type        = map(list(string))
+  default     = {}
+}
+
+variable "quarantine_subnets" {
+  description = "A map defining which subnets/tiers to isolate. Keys are tier names (e.g., public, private) and values are lists of AZs or CIDRs."
+  type        = map(list(string))
+  default     = {}
+}

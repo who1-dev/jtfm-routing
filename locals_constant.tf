@@ -12,4 +12,15 @@ locals {
   DB_RT    = "DBRT"
   RT_ASSOC = "RTASSOC"
 
+  #Output Keys
+  PUBLIC_SUBNETS   = "public_subnets"
+  PRIVATE_SUBNETS  = "private_subnets"
+  DATABASE_SUBNETS = "database_subnets"
+
+  #Resource Keys
+  SHARED   = "shared"
+  PUBLIC   = "public"
+  PRIVATE  = "private"
+  DATABASE = "database"
+
 }
