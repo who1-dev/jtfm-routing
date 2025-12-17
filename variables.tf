@@ -35,25 +35,6 @@ variable "local_network_source_path" {
   default     = ""
 }
 
-# START: Subnet Isolation ─────────────────────────────
-variable "exclude_public_subnet" {
-  type        = list(string)
-  description = "List of Public Subnet to be excluded in route table association"
-  default     = []
-}
-
-variable "exclude_private_subnet" {
-  type        = list(string)
-  description = "List of Private Subnet to be excluded in route table association"
-  default     = []
-}
-
-variable "exclude_database_subnet" {
-  type        = list(string)
-  description = "List of Database Subnet to be excluded in route table association"
-  default     = []
-}
-
 # START: Routes: NAT Access ─────────────────────────────
 variable "enable_nat_access_to_all_private_subnets" {
   type        = bool
@@ -88,5 +69,11 @@ variable "isolate_subnets" {
 variable "quarantine_subnets" {
   description = "A map defining which subnets/tiers to isolate. Keys are tier names (e.g., public, private) and values are lists of AZs or CIDRs."
   type        = map(list(string))
+  default     = {}
+}
+
+variable "shared_nacl_associations" {
+  description = "A map defining which NACL Tier and Subnet Key to associate the available Shared NACLs. Keys are tier names (e.g., public, private) and values are lists of Subnet Keys"
+  type        = map(map(list(string)))
   default     = {}
 }
