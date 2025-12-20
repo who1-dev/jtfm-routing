@@ -6,10 +6,12 @@ locals {
   # S3 Bucket and Key takes precedence over local path
   network = data.terraform_remote_state.remote == null ? data.terraform_remote_state.local[0].outputs : data.terraform_remote_state.remote[0].outputs
 
-  subnets        = try(local.network[local.SUBNETS])
-  nacls          = try(local.network[local.NACLS], {})
-  nacls_shared   = try(local.nacls[local.SHARED], {})
-  map_active_azs = local.network.active_azs
+  subnets      = try(local.network[local.SUBNETS])
+  nacls        = try(local.network[local.NACLS], {})
+  nacls_shared = try(local.nacls[local.SHARED], {})
+
+  # Used as source of truth for NAT Gateway AZ connections
+  map_active_azs = try(local.network.active_azs, {})
 
 
   # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -26,28 +28,20 @@ locals {
     )
   }
 
-  # Removes subnet_keys that are mentioned from ISOLATE and QUARANTINE
-  map_route_table_associations = {
-    # OUTER LOOP: Iterates through "public", "private"
-    for tier, subnet_map in local.subnets : tier => {
-
-      # INNER LOOP: Iterates through "1A1", "1B1" inside that tier
-      for az_key, subnet_details in subnet_map : az_key => subnet_details
-
-      # THE CONDITION: 
-      # Check if the isolation list for this tier (e.g., "private_subnets") 
-      # contains this specific key (e.g., "1A1")
-      if !contains(try(local.map_isolated_subnets[tier], []), az_key)
+  # The flattened map
+  flatten_map_route_table_associations = merge([
+    for tier, subnet_map in local.subnets : {
+      for subnet_key, subnet_details in subnet_map :
+      # Example: { PUB-1A1 : { ... }, { PRV-1B1 : {...} } }
+      "${local.TIER_DICTIONARY[tier]}-${subnet_key}" => {
+        subnet_id = subnet_details.id
+        rt_key    = (tier == local.PUBLIC) ? local.TIER_DICTIONARY[tier] : format("%s-%s", local.TIER_DICTIONARY[tier], subnet_details.short_az)
+        tier      = tier
+      }
+      # Remove RT Association for isolated subnets.
+      if !contains(try(local.map_isolated_subnets[tier], []), subnet_key)
     }
-  }
-
-  # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  #  ROUTES - NAT Access 
-  # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  list_nat_gateway_keys       = keys(local.network.nat_gateways)
-  list_private_rt_nat_access  = var.enable_nat_access_to_all_private_subnets ? local.list_nat_gateway_keys : var.set_private_subnet_nat_az_connection
-  list_database_rt_nat_access = var.enable_nat_access_to_all_database_subnets ? local.list_nat_gateway_keys : var.set_database_subnet_nat_az_connection
-
+  ]...)
 
   # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   #  NACL - Associations | SHARED NACLS
@@ -70,7 +64,7 @@ locals {
     }
   }
 
-  map_nacl_associations = {
+  map_shared_nacl_associations = {
     for item in flatten([
       for nacl_name, tier_map in local.filtered_shared_nacl_associations : [
         for tier, subnets in tier_map : [

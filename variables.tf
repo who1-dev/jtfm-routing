@@ -9,10 +9,14 @@ variable "namespace" {
   description = "Project namespace"
 }
 
-
 variable "region" {
-  type    = string
-  default = "us-east-1"
+  type        = string
+  description = "AWS region to deploy resources"
+}
+
+variable "default_tags" {
+  type        = map(any)
+  description = "Default tags to be applied to all AWS resources"
 }
 
 
@@ -36,44 +40,59 @@ variable "local_network_source_path" {
 }
 
 # START: Routes: NAT Access ─────────────────────────────
-variable "enable_nat_access_to_all_private_subnets" {
-  type        = bool
-  description = "This flag will create routes for Private Subnets NAT Access"
-  default     = false
+variable "nat_access" {
+  description = "Controls outbound internet access via NAT Gateways. Keys must be 'private' or 'database'. Set 'all = true' for all AZs or provide specific short AZ names (e.g., ['1A', '1B']) in the 'azs' list."
+  type = map(object({
+    all = optional(bool, true)
+    azs = optional(list(string), [])
+  }))
+  default = {
+    private = {
+      all = true
+    }
+    database = {
+      all = true
+    }
+  }
+
+  validation {
+    condition     = length(setsubtract(keys(var.nat_access), ["private", "database"])) == 0
+    error_message = "Invalid key found in nat_access. Only 'private' and 'database' are supported."
+  }
 }
 
-variable "enable_nat_access_to_all_database_subnets" {
-  type        = bool
-  description = "This flag will create routes for Database Subnets NAT Access"
-  default     = false
-}
-
-variable "set_private_subnet_nat_az_connection" {
-  type        = list(string)
-  description = "A list of Availability Zones to connect Private Subnets to NAT Gateways. Must be a subset of var.azs."
-  default     = []
-}
-
-variable "set_database_subnet_nat_az_connection" {
-  type        = list(string)
-  description = "A list of Availability Zones to connect Database Subnets to NAT Gateways. Must be a subset of var.azs."
-  default     = []
-}
-
+# START: Subnet Association: ISOLATE | QUARANTINE ─────────────────────────────
 variable "isolate_subnets" {
-  description = "A map defining which subnets/tiers to isolate. Keys are tier names (e.g., public, private) and values are lists of AZs or CIDRs."
+  description = "Prevents subnets from being associated with any Route Table, effectively cutting off all routing (Isolation). Keys are tier names ('public', 'private', 'database') and values are lists of subnet keys (e.g., ['1A1', '1B1'])."
   type        = map(list(string))
   default     = {}
+
+  validation {
+    # Ensures only valid tier keys are used
+    condition     = length(setsubtract(keys(var.isolate_subnets), ["public", "private", "database"])) == 0
+    error_message = "Invalid key found in isolate_subnets. Only 'public', 'private', and 'database' are supported."
+  }
 }
 
 variable "quarantine_subnets" {
-  description = "A map defining which subnets/tiers to isolate. Keys are tier names (e.g., public, private) and values are lists of AZs or CIDRs."
+  description = "Subnet specified will be attached with QUARANTINE NACL(blackhole). Keys are tier names ('public', 'private', 'database') and values are lists of subnet keys (e.g., ['1A1', '1B1']) to isolate."
   type        = map(list(string))
   default     = {}
+  validation {
+    condition     = length(setsubtract(keys(var.quarantine_subnets), ["public", "private", "database"])) == 0
+    error_message = "Invalid key found in quarantine_subnets. Only 'public', 'private', and 'database' are supported."
+  }
 }
 
+
+# START: SHARED NACL Associations: ─────────────────────────────
 variable "shared_nacl_associations" {
-  description = "A map defining which NACL Tier and Subnet Key to associate the available Shared NACLs. Keys are tier names (e.g., public, private) and values are lists of Subnet Keys"
+  description = "Maps specific Shared NACLs to subnet tiers. The top-level key is the target NACL name. The nested map links tier names ('public', 'private', 'database') to lists of subnet keys (e.g., ['1A1'])."
   type        = map(map(list(string)))
   default     = {}
+
+  validation {
+    condition     = length(setsubtract(keys(var.shared_nacl_associations), ["public", "private", "database"])) == 0
+    error_message = "Invalid key found in shared_nacl_associations. Only 'public', 'private', and 'database' are supported."
+  }
 }

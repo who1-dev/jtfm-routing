@@ -9,12 +9,8 @@ terraform {
 
 # Configure the AWS Provider
 provider "aws" {
-  region = "us-east-1"
+  region = var.region
   default_tags {
-    tags = {
-      Project    = "Modules"
-      AppPurpose = "Routing"
-      Owner      = "JOHN-RND"
-    }
+    tags = var.default_tags
   }
 }
