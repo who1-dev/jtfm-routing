@@ -4,7 +4,7 @@ locals {
   INTERNET_CIDR_IPV6 = "::/0"
 
   REGEX_AZ_SHORT = "([0-9]+[a-z])"
-  default_tags   = { "Environment" : upper(var.env) }
+  default_tags   = { "environment" : var.env }
 
   # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   # WARNING!!! : Changing values below will force recreation of SUBNET at NACL associations
@@ -22,9 +22,9 @@ locals {
   PRIVATE  = "private"
   DATABASE = "database"
 
-  PUBLIC_SHORTENED   = "PUB"
-  PRIVATE_SHORTENED  = "PRV"
-  DATABASE_SHORTENED = "DB"
+  PUBLIC_SHORTENED   = "pub"
+  PRIVATE_SHORTENED  = "prv"
+  DATABASE_SHORTENED = "db"
 
   # Dictionary for shortening the Tier Name e.g PUBLIC > PUB
   TIER_LIST = [local.PUBLIC, local.PRIVATE, local.DATABASE]

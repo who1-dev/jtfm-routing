@@ -1,6 +1,6 @@
 locals {
 
-  namespace = upper(format("%s-%s", var.namespace, var.env))
+  namespace = format("%s-%s", var.namespace, var.env)
 
   # Load network state from either local or remote based on provided variables
   # S3 Bucket and Key takes precedence over local path
